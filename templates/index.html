@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🐕 Johny's Potty Training</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Potty Training">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <style>
+        :root {
+            --primary-color: #8B5E3C;
+            --secondary-color: #D4A373;
+            --background-color: #FDFCF7;
+            --text-color: #534338;
+        }
+
+        body {
+            background: var(--primary-color);
+            background-image: url('static/images/paw-pattern.png');
+            background-size: 200px;
+            background-repeat: repeat;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: var(--text-color);
+        }
+
+        .app-header {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 1rem;
+            position: static;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            width: 100%;
+        }
+
+        .left-section {
+            flex: 1;
+        }
+
+        .center-section {
+            flex: 2;
+            text-align: center;
+        }
+
+        .right-section {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .title-logo {
+            width: 40px;
+            height: 40px;
+        }
+
+        .header-container h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mobile-container {
+            background: white;
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Update event button styles to allow multiple selection */
+        .event-button.selected {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            filter: brightness(110%);
+        }
+
+        .event-button[data-event-type="Pee"] {
+            background: var(--secondary-color);
+        }
+
+        .event-button[data-event-type="Poo"] {
+            background: var(--primary-color);
+        }
+
+        /* Auth container styling */
+        #auth-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-color);
+            background-image: url('static/images/paw-pattern.png');
+            background-size: 200px;
+            background-repeat: repeat;
+            z-index: 1000;
+            min-height: 100vh;
+        }
+
+        .auth-content {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .app-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .auth-content h1 {
+            color: var(--primary-color);
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .google-sign-in {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            background: white;
+            color: #3c4043;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            max-width: 240px;
+        }
+
+        .google-sign-in:hover {
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .google-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .chart-container {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            height: 200px;
+        }
+
+        .location-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .location-button {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .location-button.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .time-picker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.75rem;
+        }
+
+        .time-input {
+            width: 3rem;
+            text-align: center;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background: white;
+        }
+
+        .time-adjust {
+            background: #e2e8f0;
+            border: none;
+            border-radius: 0.5rem;
+            width: 2rem;
+            height: 2rem;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .time-adjust:hover {
+            background: #cbd5e1;
+        }
+
+        .event-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .event-button {
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .event-button:hover {
+            background: #e2e8f0;
+        }
+
+        .event-button.selected {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(0.98);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Remove the specific event button colors */
+        .event-button[data-event-type="Pee"],
+        .event-button[data-event-type="Poo"] {
+            background: #f1f5f9;  /* Same as location buttons */
+        }
+
+        .profile-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #profile-initial {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+
+        .sign-out-button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #ef4444;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sign-out-button:hover {
+            background: #dc2626;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .message {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        .recording-section {
+            background: white;
+            padding: 2rem 1rem;
+            border: none;
+            margin: 0;
+            position: relative;  /* For absolute positioning of borders */
+        }
+
+        /* Add partial-width borders using pseudo-elements */
+        .recording-section::before,
+        .recording-section::after {
+            content: '';
+            position: absolute;
+            left: 1rem;
+            right: 1rem;
+            height: 1px;
+            background: var(--secondary-color);
+        }
+
+        .recording-section::before {
+            top: 0;
+        }
+
+        .recording-section::after {
+            bottom: 0;
+        }
+
+        .stats-section {
+            margin-top: 2rem;
+            padding-top: 1rem;
+        }
+
+        /* Update spacing between recording elements */
+        .event-buttons {
+            margin-bottom: 1rem;
+        }
+
+        .location-buttons {
+            margin-bottom: 1rem;
+        }
+
+        .selection-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .selection-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .event-button.selected, .location-button.selected {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(0.98);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .time-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .time-unit label {
+            font-size: 0.875rem;
+            color: var(--text-color);
+        }
+
+        .time-separator {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+        }
+
+        .time-input {
+            width: 3rem;
+            text-align: center;
+            font-size: 1.25rem;
+            padding: 0.5rem;
+            border: 1px solid var(--secondary-color);
+            border-radius: 0.5rem;
+        }
+
+        .time-adjust {
+            width: 2rem;
+            height: 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: var(--secondary-color);
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .time-adjust:hover {
+            background: var(--primary-color);
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--secondary-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .record-button {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+
+        .record-button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .record-button:active {
+            transform: translateY(0);
+        }
+
+        .title-section {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            margin-bottom: 1.5rem;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .title-section h1 {
+            margin: 0.5rem 0 0;
+            color: var(--primary-color);
+            font-size: 1.75rem;
+            font-weight: bold;
+        }
+
+        .title-logo {
+            width: 64px;
+            height: 64px;
+        }
+
+        .time-input-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .time-input {
+            width: 3rem;
+            text-align: center;
+            font-size: 1.25rem;
+            padding: 0.5rem;
+            border: 1px solid var(--secondary-color);
+            border-radius: 0.5rem;
+        }
+
+        .time-adjust {
+            width: 2rem;
+            height: 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: var(--secondary-color);
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .location-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .location-button.selected {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .location-button.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            font-size: 0.875rem;
+            background: white;
+            color: var(--primary-color);
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Update header to be less prominent */
+        .app-header {
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .header-content {
+            justify-content: flex-end;
+        }
+
+        /* Ensure the recording section stands out */
+        .recording-section {
+            margin-top: 1rem;
+        }
+
+        .selection-feedback {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--primary-color);
+            font-weight: 500;
+            min-height: 1.25rem;
+        }
+
+        .location-button.selected {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(0.98);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Remove bottom buttons */
+        .bottom-buttons {
+            display: none;
+        }
+
+        .event-button, .location-button {
+            position: relative;
+            padding: 1rem;
+            width: 100%;
+            text-align: center;
+            border: 2px solid var(--secondary-color);
+            background: white;
+            border-radius: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            overflow: hidden;
+        }
+
+        .event-button:hover, .location-button:hover {
+            background: #f8f9fa;
+        }
+
+        .event-button.selected, .location-button.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: scale(0.98);
+        }
+
+        /* Remove any specific background colors */
+        .event-button[data-event-type="Pee"],
+        .event-button[data-event-type="Poo"] {
+            background: white;
+        }
+
+        .button-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .selection-indicator {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            transform: scale(0);
+            transition: transform 0.2s ease-out;
+        }
+
+        .event-button.selected, .location-button.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .selected .selection-indicator {
+            transform: scale(1);
+        }
+
+        /* Remove feedback elements */
+        .selection-feedback {
+            display: none;
+        }
+
+        .user-menu {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .profile-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 8px 0;
+            min-width: 120px;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.hidden {
+            display: none;
+        }
+
+        .sign-out-option {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            text-align: left;
+            border: none;
+            background: none;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .sign-out-option:hover {
+            background: #f5f5f5;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .toast-message {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            animation: slideUp 0.3s ease-out forwards;
+            opacity: 0;
+        }
+
+        .toast-message.fade-out {
+            animation: fadeOut 0.3s ease-in forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+    <script>
+        // Initialize Supabase client
+        const supabaseClient = supabase.createClient(
+            'https://rwhfqbdupilymdkdawdz.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3aGZxYmR1cGlseW1ka2Rhd2R6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU1NjA2MDEsImV4cCI6MjA1MTEzNjYwMX0.R_8wUy0mffZg83tLxG0Xg3gJwCxy-a4ADtYumk3rDmU'
+        );
+
+        // Make supabaseClient globally available
+        window.supabaseClient = supabaseClient;
+
+        // Define the handler function
+        window.handleRecordClick = async function() {
+            console.log('Record button clicked');
+            
+            try {
+                // Get selections
+                const selectedEvents = Array.from(document.querySelectorAll('.event-button.selected'))
+                    .map(button => button.dataset.eventType);
+                console.log('Selected events:', selectedEvents);
+                
+                const selectedLocation = document.querySelector('.location-button.selected')?.dataset.location;
+                console.log('Selected location:', selectedLocation);
+
+                // Validate
+                if (selectedEvents.length === 0) {
+                    alert('Please select at least one event type');
+                    return;
+                }
+
+                if (!selectedLocation) {
+                    alert('Please select a location');
+                    return;
+                }
+
+                // Get time and date
+                const hours = document.getElementById('hours').value;
+                const minutes = document.getElementById('minutes').value;
+                const date = document.getElementById('event-date').value;
+                console.log('Time values:', { hours, minutes, date });
+
+                // Get user session
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                console.log('Session:', session);
+                
+                if (!session) {
+                    throw new Error('No active session');
+                }
+
+                // Insert each event
+                for (const eventType of selectedEvents) {
+                    const timestamp = new Date(date);
+                    timestamp.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                    
+                    console.log('Inserting event:', {
+                        type: eventType,
+                        location: selectedLocation,
+                        timestamp: timestamp.toISOString(),
+                        user_id: session.user.id
+                    });
+
+                    const { data, error } = await supabaseClient
+                        .from('events')
+                        .insert([{
+                            type: eventType,
+                            location: selectedLocation,
+                            timestamp: timestamp.toISOString(),
+                            user_id: session.user.id
+                        }])
+                        .select();
+
+                    if (error) {
+                        console.error('Insert error:', error);
+                        throw error;
+                    }
+
+                    console.log('Insert successful:', data);
+                }
+
+                // Reset selections
+                document.querySelectorAll('.event-button.selected, .location-button.selected')
+                    .forEach(button => button.classList.remove('selected'));
+                
+                showMessage('Events recorded successfully! 🐕');
+                
+                // Update stats
+                await loadStats();
+                
+            } catch (error) {
+                console.error('Error in record flow:', error);
+                showMessage('Failed to record events: ' + error.message, true);
+            }
+        }
+
+        // Add loadStats function
+        async function loadStats() {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) {
+                    console.error('No active session');
+                    return;
+                }
+
+                const { data: events, error } = await supabaseClient
+                    .from('events')
+                    .select('*')
+                    .eq('user_id', session.user.id)
+                    .order('timestamp', { ascending: false });
+
+                if (error) throw error;
+
+                // Update last event times
+                const peeEvents = events.filter(event => event.type === 'Pee');
+                const pooEvents = events.filter(event => event.type === 'Poo');
+
+                const formatTime = (events) => {
+                    if (!events || events.length === 0) return '--';
+                    
+                    const eventDate = new Date(events[0].timestamp);
+                    const now = new Date();
+                    
+                    // Calculate the time difference in minutes
+                    const diffMinutes = Math.floor((now - eventDate) / (1000 * 60));
+                    
+                    if (diffMinutes < 60) {
+                        return `${diffMinutes}m ago`;
+                    } else if (diffMinutes < 1440) { // Less than 24 hours
+                        const hours = Math.floor(diffMinutes / 60);
+                        const mins = diffMinutes % 60;
+                        return `${hours}h ${mins}m ago`;
+                    } else {
+                        const days = Math.floor(diffMinutes / 1440);
+                        const hours = Math.floor((diffMinutes % 1440) / 60);
+                        return `${days}d ${hours}h ago`;
+                    }
+                };
+
+                document.getElementById('last-pee').textContent = formatTime(peeEvents);
+                document.getElementById('last-poo').textContent = formatTime(pooEvents);
+
+                // Update chart
+                updateChart(peeEvents, pooEvents);
+
+                console.log('Stats updated successfully');
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Add updateChart function
+        function updateChart(peeEvents, pooEvents) {
+            try {
+                console.log('Updating chart with:', {
+            peeEvents: peeEvents,
+            pooEvents: pooEvents
+        });
+                const chartElement = document.getElementById('statsChart');
+                if (!chartElement) {
+                    console.error('Chart element not found');
+                    return;
+                }
+
+                // Destroy existing chart if it exists
+                if (window.myChart) {
+                    window.myChart.destroy();
+                    window.myChart = null;
+                }
+
+                // Calculate average daily intervals
+                const calculateDailyAverages = (events) => {
+                    if (events.length < 2) return [];
+                    
+                    // Sort events by timestamp
+                    const sortedEvents = events.sort((a, b) => 
+                        new Date(a.timestamp) - new Date(b.timestamp));
+                    
+                    // Group events by day and calculate intervals
+                    const dailyIntervals = [];
+                    let currentDay = new Date(sortedEvents[0].timestamp);
+                    currentDay.setHours(0,0,0,0);
+                    
+                    let dayEvents = [];
+                    
+                    // Process all events including the last one
+                    for (let i = 0; i < sortedEvents.length; i++) {
+                        const eventDate = new Date(sortedEvents[i].timestamp);
+                        eventDate.setHours(0,0,0,0);
+                        
+                        if (eventDate.getTime() === currentDay.getTime()) {
+                            if (i < sortedEvents.length - 1) {
+                                const interval = (new Date(sortedEvents[i + 1].timestamp) - 
+                                               new Date(sortedEvents[i].timestamp)) / (1000 * 60 * 60);
+                                dayEvents.push(interval);
+                            }
+                        } else {
+                            if (dayEvents.length > 0) {
+                                const avgInterval = dayEvents.reduce((a, b) => a + b) / dayEvents.length;
+                                dailyIntervals.push({
+                                    x: currentDay,
+                                    y: avgInterval
+                                });
+                            }
+                            currentDay = eventDate;
+                            dayEvents = [];
+                            
+                            // Add interval for the current event if not the last one
+                            if (i < sortedEvents.length - 1) {
+                                const interval = (new Date(sortedEvents[i + 1].timestamp) - 
+                                               new Date(sortedEvents[i].timestamp)) / (1000 * 60 * 60);
+                                dayEvents.push(interval);
+                            }
+                        }
+                    }
+                    
+                    // Add the last day if it has events
+                    if (dayEvents.length > 0) {
+                        const avgInterval = dayEvents.reduce((a, b) => a + b) / dayEvents.length;
+                        dailyIntervals.push({
+                            x: currentDay,
+                            y: avgInterval
+                        });
+                    }
+                    
+                    return dailyIntervals;
+                };
+
+                const peeAverages = calculateDailyAverages(peeEvents);
+                const pooAverages = calculateDailyAverages(pooEvents);
+
+                // Create new chart
+                window.myChart = new Chart(chartElement, {
+                    type: 'line',
+                    data: {
+                        datasets: [{
+                            label: 'Pee Interval',
+                            data: peeAverages,
+                            borderColor: '#60A5FA',
+                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Poo Interval',
+                            data: pooAverages,
+                            borderColor: '#92400E',
+                            backgroundColor: 'rgba(146, 64, 14, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'day',
+                                    displayFormats: {
+                                        day: 'MMM d'
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Date'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Average Hours Between Events'
+                                },
+                                min: 0
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${Math.round(context.parsed.y * 10) / 10} hours`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                console.log('Chart updated successfully');
+            } catch (error) {
+                console.error('Error updating chart:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenu = document.querySelector('.user-menu');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+
+            userMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                dropdownMenu.classList.add('hidden');
+            });
+        });
+
+        function showMessage(message, isError = false) {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            // Clear any existing toasts
+            container.innerHTML = '';
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.innerHTML = `
+                ${isError ? '❌' : '✅'} ${message}
+            `;
+
+            container.appendChild(toast);
+
+            // Start fade out after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                // Remove element after fade out animation
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</head>
+<body class="dog-bg">
+    <!-- Auth container -->
+    <div id="auth-container" class="hidden">
+        <div class="auth-content">
+            <img src="static/icons/icon-192x192.png" alt="Johny's Potty Training" class="app-logo">
+            <h1>Johny's Potty Training</h1>
+            <button onclick="signInWithGoogle()" class="google-sign-in">
+                <img src="https://www.google.com/favicon.ico" alt="Google" class="google-icon">
+                <span>Sign in with Google</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main app container -->
+    <div class="mobile-container hidden">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-container">
+                <div class="left-section">
+                    <img src="static/icons/icon-192x192.png" alt="Johny's Potty Training" class="title-logo">
+                </div>
+                <div class="center-section">
+                    <h1>Johny's Potty Training</h1>
+                </div>
+                <div class="right-section">
+                    <div class="user-menu">
+                        <span id="profile-initial" class="profile-button"></span>
+                        <div class="dropdown-menu hidden">
+                            <button onclick="signOut()" class="sign-out-option">Sign Out</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Event Recording Section -->
+        <div class="recording-section">
+            <!-- Event Type Selection -->
+            <div class="selection-group">
+                <label class="selection-label">What did Johny do?</label>
+                <div class="event-buttons">
+                    <button data-event-type="Pee" class="event-button">
+                        <span class="button-content">💧 Pee</span>
+                        <span class="selection-indicator">✓</span>
+                    </button>
+                    <button data-event-type="Poo" class="event-button">
+                        <span class="button-content">💩 Poo</span>
+                        <span class="selection-indicator">✓</span>
+                    </button>
+                </div>
+                <div id="selected-events-feedback" class="selection-feedback"></div>
+            </div>
+
+            <!-- Location Selection -->
+            <div class="selection-group">
+                <label class="selection-label">Where?</label>
+                <div class="location-buttons">
+                    <button data-location="Indoor" class="location-button">
+                        <span class="button-content">🏠 Indoor</span>
+                        <span class="selection-indicator">✓</span>
+                    </button>
+                    <button data-location="Outdoor" class="location-button">
+                        <span class="button-content">🌳 Outdoor</span>
+                        <span class="selection-indicator">✓</span>
+                    </button>
+                </div>
+                <div id="selected-location-feedback" class="selection-feedback"></div>
+            </div>
+
+            <!-- Time Selection -->
+            <div class="selection-group">
+                <label class="selection-label">When?</label>
+                <div class="time-controls">
+                    <div class="time-unit">
+                        <label>Hours</label>
+                        <div class="time-input-group">
+                            <button class="time-adjust" data-field="hours" data-amount="-1">-</button>
+                            <input type="text" id="hours" class="time-input" maxlength="2">
+                            <button class="time-adjust" data-field="hours" data-amount="1">+</button>
+                        </div>
+                    </div>
+                    <span class="time-separator">:</span>
+                    <div class="time-unit">
+                        <label>Minutes</label>
+                        <div class="time-input-group">
+                            <button class="time-adjust" data-field="minutes" data-amount="-1">-</button>
+                            <input type="text" id="minutes" class="time-input" maxlength="2">
+                            <button class="time-adjust" data-field="minutes" data-amount="1">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Selection -->
+            <div class="selection-group">
+                <label class="selection-label">Date</label>
+                <input type="date" id="event-date" class="date-input" value="">
+            </div>
+
+            <!-- Record Button -->
+            <button id="record-button" class="record-button" onclick="handleRecordClick()">Record Event</button>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <div class="stats-container">
+                <div class="stat-card">
+                    <h3>Last Pee</h3>
+                    <p id="last-pee">--</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Last Poo</h3>
+                    <p id="last-poo">--</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg Pee Interval</h3>
+                    <p id="pee-avg">--</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Avg Poo Interval</h3>
+                    <p id="poo-avg">--</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Max Pee Interval</h3>
+                    <p id="pee-max">--</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Max Poo Interval</h3>
+                    <p id="poo-max">--</p>
+                </div>
+            </div>
+
+            <!-- Chart container -->
+            <div class="chart-container">
+                <canvas id="statsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize Supabase client
+            const supabaseKey = '{{ supabase_key }}';
+            const supabaseUrl = '{{ supabase_url }}';
+            
+            console.log('Supabase URL:', supabaseUrl);
+            console.log('Supabase Key (first 10 chars):', supabaseKey.substring(0, '10') + '...');
+            
+            const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+            // Auth functions
+            async function signInWithGoogle() {
+                try {
+                    const { error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google'
+                    });
+                    if (error) throw error;
+                } catch (error) {
+                    console.error('Error during sign in:', error);
+                    alert('Failed to sign in with Google. Please try again.');
+                }
+            }
+
+            async function signOut() {
+                try {
+                    await supabase.auth.signOut();
+                    await checkAuth();
+                } catch (error) {
+                    console.error('Error during sign out:', error);
+                    alert('Failed to sign out. Please try again.');
+                }
+            }
+
+            // Time functions
+            function updateCurrentTime() {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                
+                const hoursInput = document.getElementById('hours');
+                const minutesInput = document.getElementById('minutes');
+                
+                if (hoursInput && minutesInput) {
+                    hoursInput.value = hours;
+                    minutesInput.value = minutes;
+                }
+            }
+
+            // Update time every minute
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 60000);
+
+            // Global variables
+            let selectedLocation = null;
+
+            // Location selection function
+            function selectLocation(location) {
+                const buttons = document.querySelectorAll('.location-button');
+                buttons.forEach(btn => {
+                    if (btn.dataset.location === location) {
+                        btn.classList.add('selected');
+                    } else {
+                        btn.classList.remove('selected');
+                    }
+                });
+                selectedLocation = location;
+            }
+
+            // Record event function
+            async function recordEvent(eventType, location, timestamp) {
+                try {
+                    const { data, error } = await supabase
+                        .from('events')
+                        .insert([
+                            {
+                                type: eventType,
+                                location: location,
+                                timestamp: timestamp.toISOString(),
+                                user_id: (await supabase.auth.getUser()).data.user.id
+                            }
+                        ]);
+
+                    if (error) throw error;
+                    return data;
+                } catch (error) {
+                    console.error('Error in recordEvent:', error);
+                    throw error;
+                }
+            }
+
+            // Update event button click handlers
+            document.addEventListener('DOMContentLoaded', function() {
+                // Location button handlers
+                document.querySelectorAll('.location-button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const location = this.dataset.location;
+                        selectLocation(location);
+                    });
+                });
+
+                // Record button handler
+                document.getElementById('record-button').addEventListener('click', async function() {
+                    console.log('Record button clicked');
+                    
+                    // Get selected events
+                    const selectedEvents = Array.from(document.querySelectorAll('.event-button.selected'))
+                        .map(button => button.dataset.eventType);
+                    console.log('Selected events:', selectedEvents);
+                    
+                    // Get selected location
+                    const selectedLocation = document.querySelector('.location-button.selected')?.dataset.location;
+                    console.log('Selected location:', selectedLocation);
+                    
+                    // Validate selections
+                    if (selectedEvents.length === 0) {
+                        console.log('No events selected');
+                        showMessage('Please select at least one event type', true);
+                        return;
+                    }
+
+                    if (!selectedLocation) {
+                        console.log('No location selected');
+                        showMessage('Please select a location', true);
+                        return;
+                    }
+
+                    try {
+                        // Get time and date values
+                        const hours = document.getElementById('hours').value;
+                        const minutes = document.getElementById('minutes').value;
+                        const date = document.getElementById('event-date').value;
+                        console.log('Time and date:', { hours, minutes, date });
+                        
+                        // Record each selected event
+                        for (const eventType of selectedEvents) {
+                            const timestamp = new Date(date);
+                            timestamp.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                            
+                            console.log('Recording event:', { eventType, selectedLocation, timestamp });
+                            await recordEvent(eventType, selectedLocation, timestamp);
+                        }
+
+                        // Reset selections
+                        document.querySelectorAll('.event-button.selected, .location-button.selected')
+                            .forEach(button => button.classList.remove('selected'));
+                        
+                        console.log('Events recorded successfully');
+                        showMessage('Events recorded successfully! 🐕');
+                        
+                        // Update stats and chart
+                        console.log('Updating stats...');
+                        await loadStats();
+                        
+                    } catch (error) {
+                        console.error('Error recording events:', error);
+                        showMessage('Failed to record events', true);
+                    }
+                });
+            });
+
+            // Event listeners
+            document.querySelectorAll('[data-event-type]').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                });
+            });
+
+            document.querySelectorAll('.time-adjust').forEach(button => {
+                button.addEventListener('click', function() {
+                    const field = this.dataset.field;
+                    const amount = parseInt(this.dataset.amount);
+                    const input = document.getElementById(field);
+                    let value = parseInt(input.value);
+                    
+                    if (field === 'hours') {
+                        value = (value + amount + 24) % 24;
+                    } else {
+                        value = (value + amount + 60) % 60;
+                    }
+                    
+                    input.value = value.toString().padStart(2, '0');
+                });
+            });
+
+            // Make auth functions globally available
+            window.signInWithGoogle = signInWithGoogle;
+            window.signOut = signOut;
+
+            // Auth state change handler
+            supabase.auth.onAuthStateChange((event, session) => {
+                console.log('Auth state changed:', event);
+                if (session) {
+                    console.log('Loading stats after auth change');
+                    loadStats();
+                }
+                checkAuth();
+            });
+
+            // Initial load
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                console.log('Initial stats load');
+                await loadStats();
+            }
+            await checkAuth();
+
+            async function loadStats() {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) {
+                        console.error('No session found when loading stats');
+                        return;
+                    }
+
+                    // Load pee stats
+                    const { data: peeData, error: peeError } = await supabase
+                        .from('events')
+                        .select('*')
+                        .eq('type', 'Pee')
+                        .eq('user_id', session.user.id)
+                        .order('timestamp', { ascending: false });
+
+                    if (peeError) throw peeError;
+
+                    // Load poo stats
+                    const { data: pooData, error: pooError } = await supabase
+                        .from('events')
+                        .select('*')
+                        .eq('type', 'Poo')
+                        .eq('user_id', session.user.id)
+                        .order('timestamp', { ascending: false });
+
+                    if (pooError) throw pooError;
+
+                    // Update stats display
+                    updateStats(peeData || [], pooData || []);
+                    
+                    // Update chart
+                    updateChart(peeData || [], pooData || []);
+
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                    showMessage('Failed to load statistics', true);
+                }
+            }
+
+            function updateStats(peeData, pooData) {
+                // Calculate time differences
+                const peeTimes = calculateTimeDifferences(peeData);
+                const pooTimes = calculateTimeDifferences(pooData);
+
+                // Update max times
+                document.getElementById('pee-max').textContent = 
+                    formatDuration(peeTimes.length ? Math.max(...peeTimes) : 0);
+                document.getElementById('poo-max').textContent = 
+                    formatDuration(pooTimes.length ? Math.max(...pooTimes) : 0);
+
+                // Update average times
+                document.getElementById('pee-avg').textContent = 
+                    formatDuration(peeTimes.length ? peeTimes.reduce((a, b) => a + b, 0) / peeTimes.length : 0);
+                document.getElementById('poo-avg').textContent = 
+                    formatDuration(pooTimes.length ? pooTimes.reduce((a, b) => a + b, 0) / pooTimes.length : 0);
+
+                // Update last times
+                document.getElementById('last-pee').textContent = 
+                    formatDuration(peeTimes.length ? peeTimes[0] : 0);
+                document.getElementById('last-poo').textContent = 
+                    formatDuration(pooTimes.length ? pooTimes[0] : 0);
+            }
+
+            function calculateTimeDifferences(events) {
+                if (!events || events.length === 0) return [];
+                
+                const now = new Date();
+                return events.map(event => {
+                    const eventTime = new Date(event.timestamp);
+                    return (now - eventTime) / (1000 * 60 * 60); // Convert to hours
+                });
+            }
+
+            function formatDuration(hours) {
+                if (hours === 0) return '--';
+                if (hours < 1) {
+                    const minutes = Math.round(hours * 60);
+                    return `${minutes}m`;
+                }
+                return `${Math.round(hours)}h`;
+            }
+
+            function showMessage(message, isError = false) {
+                console.log(`${isError ? 'Error: ' : ''}${message}`);
+                // You can also add visual feedback here
+                alert(message);
+            }
+
+            async function checkAuth() {
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    console.log('Checking auth, session:', session);
+
+                    const authContainer = document.getElementById('auth-container');
+                    const mobileContainer = document.querySelector('.mobile-container');
+
+                    if (!session) {
+                        console.log('No session, showing auth container');
+                        // Show auth container with fade-in
+                        authContainer.style.opacity = '0';
+                        authContainer.style.display = 'block';
+                        authContainer.classList.remove('hidden');
+                        setTimeout(() => {
+                            authContainer.style.opacity = '1';
+                            authContainer.style.transition = 'opacity 0.3s ease-in-out';
+                        }, 50);
+
+                        // Hide mobile container with fade-out
+                        if (mobileContainer) {
+                            mobileContainer.style.opacity = '0';
+                            mobileContainer.style.transition = 'opacity 0.3s ease-in-out';
+                            setTimeout(() => {
+                                mobileContainer.style.display = 'none';
+                                mobileContainer.classList.add('hidden');
+                            }, 300);
+                        }
+                    } else {
+                        console.log('Session found, showing mobile container');
+                        // Hide auth container
+                        authContainer.style.opacity = '0';
+                        authContainer.style.transition = 'opacity 0.3s ease-in-out';
+                        setTimeout(() => {
+                            authContainer.style.display = 'none';
+                            authContainer.classList.add('hidden');
+                        }, 300);
+
+                        // Show mobile container with fade-in
+                        if (mobileContainer) {
+                            mobileContainer.style.opacity = '0';
+                            mobileContainer.style.display = 'block';
+                            mobileContainer.classList.remove('hidden');
+                            setTimeout(() => {
+                                mobileContainer.style.opacity = '1';
+                                mobileContainer.style.transition = 'opacity 0.3s ease-in-out';
+                            }, 50);
+                        }
+                        
+                        // Set user initial with animation
+                        if (session.user.email) {
+                            const initial = session.user.email.charAt(0).toUpperCase();
+                            const profileInitial = document.getElementById('profile-initial');
+                            if (profileInitial) {
+                                profileInitial.textContent = initial;
+                                profileInitial.classList.add('animate-pop');
+                                setTimeout(() => profileInitial.classList.remove('animate-pop'), 500);
+                            }
+                        }
+
+                        // Load initial data
+                        await loadStats();
+                    }
+                } catch (error) {
+                    console.error('Error in checkAuth:', error);
+                    // Show auth container on error with gentle fade
+                    const authContainer = document.getElementById('auth-container');
+                    const mobileContainer = document.querySelector('.mobile-container');
+                    
+                    if (mobileContainer) {
+                        mobileContainer.style.opacity = '0';
+                        mobileContainer.style.transition = 'opacity 0.3s ease-in-out';
+                        setTimeout(() => {
+                            mobileContainer.style.display = 'none';
+                            mobileContainer.classList.add('hidden');
+                        }, 300);
+                    }
+
+                    authContainer.style.opacity = '0';
+                    authContainer.style.display = 'block';
+                    authContainer.classList.remove('hidden');
+                    setTimeout(() => {
+                        authContainer.style.opacity = '1';
+                        authContainer.style.transition = 'opacity 0.3s ease-in-out';
+                    }, 50);
+                }
+            }
+
+            // Handle OAuth redirect
+            if (window.location.hash) {
+                console.log('Processing hash parameters...');
+                const params = new URLSearchParams(window.location.hash.substring(1));
+                if (params.has('access_token')) {
+                    try {
+                        const { data: { session }, error } = await supabase.auth.setSession({
+                            access_token: params.get('access_token'),
+                            refresh_token: params.get('refresh_token')
+                        });
+                        
+                        if (error) throw error;
+                        console.log('Session set successfully:', session);
+                        
+                        // Clear the hash
+                        history.replaceState(null, '', window.location.pathname);
+                    } catch (error) {
+                        console.error('Error setting session:', error);
+                    }
+                }
+            }
+
+            // Initial auth check
+            await checkAuth();
+
+            // Fix location selection
+            document.querySelectorAll('.location-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const location = this.dataset.location;
+                    
+                    // Remove selection from all location buttons
+                    document.querySelectorAll('.location-button').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    
+                    // Add selection to clicked button
+                    this.classList.add('selected');
+                    
+                    // Update feedback
+                    const feedbackElement = document.getElementById('selected-location-feedback');
+                    feedbackElement.textContent = `Selected: ${location}`;
+                    feedbackElement.classList.add('visible');
+                    
+                    // Update global selected location
+                    window.selectedLocation = location;
+                });
+            });
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // Set default date to today
+                const today = new Date();
+                const dateInput = document.getElementById('event-date');
+        
+                // Format date as YYYY-MM-DD
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${year}-${month}-${day}`;
+
+                // Set default time to current time
+                const hours = String(today.getHours()).padStart(2, '0');
+                const minutes = String(today.getMinutes()).padStart(2, '0');
+                
+                document.getElementById('hours').value = hours;
+                document.getElementById('minutes').value = minutes;
+
+                // Rest of your DOMContentLoaded code...
+            });
+
+            // Wait for DOM to load
+            window.onload = function() {
+                console.log('Window loaded');
+                
+                // Find the button
+                const recordButton = document.getElementById('record-button');
+                console.log('Record button found:', recordButton);
+
+                if (!recordButton) {
+                    console.error('Record button not found!');
+                    return;
+                }
+
+                // Add click handler directly to the button
+                recordButton.onclick = function() {
+                    console.log('Record button clicked (direct handler)');
+                    alert('Button clicked!');
+                };
+            };
+            const dateInput = document.getElementById('event-date');
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+            const day = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            console.log('Formatted date:', formattedDate);
+            dateInput.value = formattedDate;
+        });
+    </script>
+</body>
+</html> 

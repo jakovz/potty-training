@@ -1,0 +1,261 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-height: 300px;
+    position: relative;
+}
+
+.form-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+select, input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #219a52;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    .form-container {
+        padding: 15px;
+    }
+
+    .time-group {
+        flex-direction: column;
+    }
+
+    .time-unit, .time-button {
+        margin-bottom: 5px;
+    }
+
+    .date-input {
+        padding: 12px !important;
+        font-size: 1em;
+    }
+
+    .time-input {
+        font-size: 1.2em !important;
+    }
+
+    .select-button, .time-button {
+        padding: 12px;
+        font-size: 1em;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .subtitle {
+        font-size: 1em;
+    }
+
+    .form-container h2 {
+        font-size: 1.2em;
+    }
+
+    .chart-container {
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 1.1em;
+    margin-top: -10px;
+}
+
+.form-container h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+select option {
+    font-size: 1.1em;
+}
+
+.time-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.date-group {
+    width: 100%;
+}
+
+.date-input {
+    width: 100% !important;
+    padding: 15px !important;
+    font-size: 1.2em;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.time-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.time-unit {
+    flex: 1;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.time-unit label {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.time-input {
+    width: 100% !important;
+    border: none !important;
+    background: transparent !important;
+    font-size: 1.5em !important;
+    padding: 5px !important;
+    text-align: center;
+    color: #2c3e50;
+}
+
+.time-button {
+    flex: 1;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.2em;
+    line-height: 1.5;
+    color: #2c3e50;
+}
+
+.time-button:hover {
+    background: #e9ecef;
+    border-color: #27ae60;
+}
+
+.secondary-button {
+    background: #6c757d;
+    padding: 8px 15px;
+    width: auto;
+}
+
+.secondary-button:hover {
+    background: #5a6268;
+}
+
+input[type="date"] {
+    width: 140px;
+}
+
+/* Remove spinner buttons from number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    height: 30px;
+}
+
+.button-select {
+    display: flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.select-button {
+    flex: 1;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.2em;
+    line-height: 1.5;
+    color: #2c3e50;
+}
+
+.select-button:hover {
+    background: #e9ecef;
+    border-color: #27ae60;
+}
+
+.select-button.active {
+    background: #27ae60;
+    color: white;
+    border-color: #27ae60;
+} 
