@@ -11,7 +11,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev')
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    stream=sys.stdout,  # Ensure logs go to stdout for Vercel
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 def require_auth(f):
@@ -69,6 +73,20 @@ def get_stats():
 def auth_callback():
     return redirect('/')
 
+@app.route('/health')
+def health_check():
+    logger.info("Health check endpoint called")
+    return jsonify({
+        "status": "healthy",
+        "environment_vars": {
+            "FLASK_ENV": os.getenv('FLASK_ENV'),
+            "PYTHONPATH": os.getenv('PYTHONPATH'),
+            # Don't log sensitive values
+            "HAS_SECRET_KEY": bool(os.getenv('FLASK_SECRET_KEY')),
+            "HAS_SUPABASE_URL": bool(os.getenv('SUPABASE_URL')),
+        }
+    })
+
 # Add error handler
 @app.errorhandler(Exception)
 def handle_error(error):
@@ -77,6 +95,17 @@ def handle_error(error):
         "error": str(error),
         "stacktrace": str(sys.exc_info())
     }), 500
+
+# Add this after app initialization
+@app.before_request
+def log_request_info():
+    logger.debug('Headers: %s', request.headers)
+    logger.debug('Body: %s', request.get_data())
+
+@app.after_request
+def log_response_info(response):
+    logger.debug('Response: %s', response.get_data())
+    return response
 
 if __name__ == '__main__':
     app.run() 
