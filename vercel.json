@@ -11,5 +11,11 @@
       "src": "/(.*)",
       "dest": "/api/index.py"
     }
-  ]
+  ],
+  "env": {
+    "SUPABASE_URL": "@supabase_url",
+    "SUPABASE_KEY": "@supabase_key",
+    "SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "FLASK_SECRET_KEY": "@flask_secret_key"
+  }
 } 
