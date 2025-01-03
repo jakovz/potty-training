@@ -1,10 +1,11 @@
 from flask import Flask
+from app import app
 import sys
 import logging
+from base64 import b64decode
 import json
-from app import app
 
-# Configure logging to output to stdout
+# Configure logging
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.DEBUG,
@@ -12,76 +13,69 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def application(scope, receive, send):
+    """ASGI application."""
+    async def _send(event):
+        await send(event)
+
+    async def _receive():
+        return await receive()
+
+    return app.wsgi_app(scope, _receive, _send)
+
+def handle_request(event):
+    """Convert API Gateway event to WSGI response."""
+    method = event.get('httpMethod', 'GET')
+    path = event.get('path', '/')
+    headers = event.get('headers', {})
+    query = event.get('queryStringParameters', {}) or {}
+    body = event.get('body', '')
+    
+    if body and event.get('isBase64Encoded', False):
+        body = b64decode(body)
+    
+    environ = {
+        'REQUEST_METHOD': method,
+        'PATH_INFO': path,
+        'QUERY_STRING': '&'.join(f'{k}={v}' for k, v in query.items()),
+        'SERVER_PROTOCOL': 'HTTP/1.1',
+        'wsgi.version': (1, 0),
+        'wsgi.url_scheme': 'https',
+        'wsgi.input': body,
+        'wsgi.errors': sys.stderr,
+        'wsgi.multithread': False,
+        'wsgi.multiprocess': False,
+        'wsgi.run_once': False,
+    }
+    
+    for key, value in headers.items():
+        key = key.upper().replace('-', '_')
+        if key not in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
+            key = f'HTTP_{key}'
+        environ[key] = value
+
+    response = {'statusCode': 200, 'headers': {}, 'body': ''}
+    
+    def start_response(status, response_headers, exc_info=None):
+        status_code = int(status.split()[0])
+        response['statusCode'] = status_code
+        response['headers'].update(dict(response_headers))
+    
+    result = app(environ, start_response)
+    response['body'] = b''.join(result).decode('utf-8')
+    return response
+
 def handler(event, context):
-    """Handle incoming Vercel serverless function requests."""
+    """Lambda/Vercel handler function."""
     try:
         logger.info(f"Received event: {event}")
-        
-        # Parse the event body if it exists
-        body = event.get('body', '')
-        if isinstance(body, str) and body:
-            try:
-                body = json.loads(body)
-            except json.JSONDecodeError:
-                pass
-
-        # Create the WSGI environment
-        environ = {
-            'REQUEST_METHOD': event.get('httpMethod', 'GET'),
-            'SCRIPT_NAME': '',
-            'PATH_INFO': event.get('path', '/'),
-            'QUERY_STRING': event.get('queryStringParameters', ''),
-            'SERVER_NAME': 'vercel',
-            'SERVER_PORT': '443',
-            'SERVER_PROTOCOL': 'HTTP/1.1',
-            'wsgi.version': (1, 0),
-            'wsgi.url_scheme': 'https',
-            'wsgi.input': body,
-            'wsgi.errors': sys.stderr,
-            'wsgi.multithread': False,
-            'wsgi.multiprocess': False,
-            'wsgi.run_once': False,
-        }
-
-        # Add headers
-        headers = event.get('headers', {})
-        for key, value in headers.items():
-            key = key.upper().replace('-', '_')
-            if key not in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
-                key = f'HTTP_{key}'
-            environ[key] = value
-
-        # Response data
-        response_data = {
-            'statusCode': 200,
-            'body': '',
-            'headers': {},
-        }
-
-        def start_response(status, response_headers, exc_info=None):
-            status_code = int(status.split()[0])
-            response_data['statusCode'] = status_code
-            response_data['headers'] = dict(response_headers)
-
-        # Get response from Flask app
-        response = app(environ, start_response)
-        
-        # Handle response
-        if response:
-            response_body = b''.join(response)
-            if isinstance(response_body, bytes):
-                response_body = response_body.decode('utf-8')
-            response_data['body'] = response_body
-
-        logger.info(f"Returning response: {response_data}")
-        return response_data
-
+        response = handle_request(event)
+        logger.info(f"Returning response: {response}")
+        return response
     except Exception as e:
-        logger.error(f"Error in handler: {str(e)}", exc_info=True)
+        logger.error(f"Error: {str(e)}", exc_info=True)
         return {
             'statusCode': 500,
             'body': str(e),
-            'headers': {
-                'Content-Type': 'text/plain',
-            }
+            'headers': {'Content-Type': 'text/plain'}
         } 
